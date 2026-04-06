@@ -1,21 +1,22 @@
-# 메일다리미 v0.1
+# 메일다리미 v0.2
 
-거친 초안을 비즈니스 이메일로 다듬어주는 웹앱 UI 초안입니다.
+실제 생성 기능이 연결된 버전입니다.
 
-## 실행 방법
+## 실행
 ```bash
 npm install
 npm run dev
 ```
 
-## 현재 포함
-- 메인 UI 초안
-- 톤 / 상황 드롭다운
-- 결과 패널
-- 모바일 대응 기본 구조
+## 필수 환경변수
+- OPENAI_API_KEY
+- OPENAI_MODEL (선택, 기본값: gpt-4.1-mini)
 
-## 다음 단계
-- 감정 쓰레기통 탭 완성
-- AI API 연결
-- 복사 기능
-- 실제 결과 생성
+## 포함 기능
+- 다리미 모드
+- 감정 쓰레기통 탭
+- 실제 이메일 생성 API
+- 복사하기 기능
+
+## Vercel 설정
+Project Settings -> Environment Variables에서 OPENAI_API_KEY를 추가한 뒤 Redeploy 하세요.
