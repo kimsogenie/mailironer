@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const model = process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
+  const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
 
   if (!apiKey) {
     return res.status(500).json({
