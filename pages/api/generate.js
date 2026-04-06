@@ -1,4 +1,4 @@
-function safeParseJson(text) {
+function extractJson(text) {
   try {
     return JSON.parse(text);
   } catch (error) {
@@ -17,12 +17,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const model = process.env.ANTHROPIC_MODEL || "claude-3-5-haiku-latest";
 
   if (!apiKey) {
     return res.status(500).json({
-      error: "OPENAI_API_KEY가 설정되지 않았습니다. Vercel Environment Variables에 추가해 주세요.",
+      error: "ANTHROPIC_API_KEY가 설정되지 않았습니다. Vercel Environment Variables에 추가해 주세요.",
     });
   }
 
@@ -32,21 +32,19 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "초안이 비어 있습니다." });
   }
 
-  const developerPrompt = [
+  const prompt = [
     "너는 한국어 비즈니스 이메일을 정리하는 전문 에디터다.",
     "사용자가 거칠게 작성한 초안을 광고주/클라이언트에게 보낼 수 있는 자연스럽고 명확한 한국어 이메일로 다듬어라.",
-    "결과는 반드시 JSON으로만 반환한다.",
-    '{\"subject\":\"\", \"body\":\"\", \"summary\":\"\"}',
+    "반드시 JSON만 출력하라.",
+    '형식: {\"subject\":\"\",\"body\":\"\",\"summary\":\"\"}',
     "규칙:",
     "- 과도한 감정 표현 제거",
     "- 요청 사항과 맥락을 명확하게 정리",
     "- tone과 situation을 반영",
     "- body는 실제로 바로 보낼 수 있는 비즈니스 이메일 형식",
     "- summary는 한 줄로 짧게 작성",
-    "- 설명 문장, 코드블록, 마크다운 금지",
-  ].join("\n");
-
-  const userPrompt = [
+    "- 코드블록, 설명 문장, 마크다운 금지",
+    "",
     `톤: ${tone}`,
     `상황: ${situation}`,
     "",
@@ -55,33 +53,30 @@ export default async function handler(req, res) {
   ].join("\n");
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model,
+        max_tokens: 1200,
         temperature: 0.6,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "developer", content: developerPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        messages: [{ role: "user", content: prompt }],
       }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      const message =
-        data?.error?.message || "OpenAI 요청 중 오류가 발생했습니다.";
+      const message = data?.error?.message || "Anthropic 요청 중 오류가 발생했습니다.";
       return res.status(response.status).json({ error: message });
     }
 
-    const text = data?.choices?.[0]?.message?.content || "";
-    const parsed = safeParseJson(text);
+    const text = data?.content?.map((item) => item?.text || "").join("\n") || "";
+    const parsed = extractJson(text);
 
     if (!parsed) {
       return res.status(500).json({
