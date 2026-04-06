@@ -273,7 +273,7 @@ export default function MailIronerApp() {
               </section>
 
               <section className="mt-4 rounded-3xl border border-dashed border-neutral-300 bg-white/70 p-4 text-sm text-neutral-500 shadow-sm">
-                지금 버전은 실제 생성까지 연결된 v0.2입니다. OpenAI API 키를 연결하면 바로 작동합니다.
+                지금 버전은 Claude API로 실제 생성까지 연결된 v0.2입니다.
               </section>
             </>
           ) : (
